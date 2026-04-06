@@ -1,0 +1,133 @@
+' =============================================================================
+'  Smart Cleaning Robot — Parallax BASIC Stamp 2
+' =============================================================================
+'  Hardware:
+'    - Parallax BASIC Stamp 2 (BS2) microcontroller
+'    - HC-SR04 ultrasonic sensor    (front obstacle detection)
+'    - Capacitive soil moisture sensor on the cleaning sponge (water-level proxy)
+'    - 2x L293D / L298N motor drivers driving 4 DC drive motors (skid steer)
+'    - 1x continuous-rotation servo  (front sweeper brush)
+'    - 1x standard servo             (rear mopping brush, 0–180 sweep)
+'    - 1x DC water pump              (sponge re-wet)
+'    - Parallax 2x16 serial LCD      (mode + status display)
+'
+'  Behaviour:
+'    1. Read the sponge moisture sensor.
+'         - If dry  -> switch to DRY CLEAN MODE, prompt user to refill water.
+'         - If wet  -> stay in WET CLEAN MODE, run the rear mopping servo.
+'    2. Sweep the rear mopping servo (0 deg <-> 180 deg).
+'    3. Tick the continuous front-sweep servo.
+'    4. Read the ultrasonic distance.
+'         - If <= 50 cm  -> turn right.
+'         - else         -> drive forward.
+'    5. Loop forever.
+' =============================================================================
+
+' {$STAMP BS2}
+' {$PBASIC 2.5}
+
+' -----------------------------------------------------------------------------
+'  Constants
+' -----------------------------------------------------------------------------
+CmConstant  CON 2260      ' HC-SR04 echo time -> distance in cm (BS2 ** factor)
+DRY_THRESH  CON 11600     ' RC-time threshold above which the sponge is "dry"
+
+' -----------------------------------------------------------------------------
+'  Pin map
+' -----------------------------------------------------------------------------
+WATER       CON 9         ' Capacitive soil moisture sensor (RCTIME line)
+SideA_Fwd   PIN 14        ' Drive H-bridge: left side forward
+SideA_Rev   PIN 13        ' Drive H-bridge: left side reverse
+SideB_Fwd   PIN 12        ' Drive H-bridge: right side forward
+SideB_Rev   PIN 11        ' Drive H-bridge: right side reverse
+MOTORA      PIN 6         ' Water-pump driver IN1
+MOTORB      PIN 7         ' Water-pump driver IN2
+' Pin 15 -> standard mopping servo (PULSOUT)
+' Pin 8  -> continuous front sweeper servo (PULSOUT)
+' Pin 10 -> ultrasonic SIG (trigger + echo on the same line)
+' Pin 0  -> serial LCD TX
+
+' -----------------------------------------------------------------------------
+'  Variables
+' -----------------------------------------------------------------------------
+cmDistance  VAR Word      ' Front distance in cm
+time        VAR Word      ' Echo pulse width
+TransTime   VAR Word      ' RCTIME reading from the moisture sensor
+counter1    VAR Byte      ' Servo sweep counter
+
+' -----------------------------------------------------------------------------
+'  Setup — clear the LCD once on power-up
+' -----------------------------------------------------------------------------
+SEROUT 0, 84, [22, 12]    ' Display ON, no cursor, clear screen
+
+' =============================================================================
+'  MAIN LOOP
+' =============================================================================
+Main:
+  ' --- 1. Sponge moisture / water-tank check -------------------------------
+  HIGH WATER
+  PAUSE 5
+  RCTIME WATER, 1, TransTime
+  TransTime = TransTime * 2
+  DEBUG DEC TransTime, 13
+
+  IF TransTime > DRY_THRESH THEN
+    ' Sponge is dry — pump OFF, prompt user
+    LOW MOTORA
+    LOW MOTORB
+    DEBUG "DRY", 13
+    SEROUT 0, 84, [17, "DRY CLEAN MODE : ", 13]
+  ELSE
+    ' Sponge is wet — run pump to keep it saturated
+    HIGH MOTORA
+    LOW  MOTORB
+    DEBUG "WET", 13
+    SEROUT 0, 84, [17, "WET CLEAN MODE : ", 13]
+  ENDIF
+
+  ' --- 2. Rear mopping servo: 0 deg <-> 180 deg sweep ----------------------
+  FOR counter1 = 1 TO 50
+    PULSOUT 15, 250       ' ~0  deg
+  NEXT
+  FOR counter1 = 1 TO 50
+    PULSOUT 15, 1250      ' ~180 deg
+  NEXT
+
+  ' --- 3. Front continuous-rotation sweeper --------------------------------
+  PULSOUT 8, 1000
+
+  ' --- 4. Ultrasonic ranging ----------------------------------------------
+  PULSOUT 10, 5           ' Trigger pulse on the SIG line
+  PULSIN  10, 1, time     ' Echo pulse width
+  cmDistance = CmConstant ** time
+
+  IF cmDistance <= 50 THEN
+    GOSUB TurnRight
+  ELSE
+    GOSUB MoveForward
+  ENDIF
+
+GOTO Main
+
+' =============================================================================
+'  Drive subroutines
+' =============================================================================
+MoveForward:
+  HIGH SideA_Fwd
+  LOW  SideA_Rev
+  HIGH SideB_Fwd
+  LOW  SideB_Rev
+  PWM 1, 135, 50          ' Left side  PWM
+  PWM 2, 135, 50          ' Right side PWM
+  DEBUG "Moving Forward", 13
+  RETURN
+
+TurnRight:
+  HIGH SideA_Fwd          ' Left forward
+  LOW  SideA_Rev
+  LOW  SideB_Fwd          ' Right reverse  -> in-place right turn
+  HIGH SideB_Rev
+  PWM 1, 135, 50
+  PWM 2, 135, 50
+  DEBUG "Turn Right", 13
+  RETURN
