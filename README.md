@@ -16,9 +16,11 @@ An autonomous floor-cleaning robot built on a Parallax BASIC Stamp 2. The bot dr
 https://github.com/tarunkumarnyu/Smart-Cleaner/raw/main/assets/smart_cleaner_demo.mp4
 
 <p align="center">
-  <img src="assets/assembled_robot.png" width="48%" alt="Assembled robot — top view"/>
-  &nbsp;
-  <img src="assets/shell_render.png" width="48%" alt="Acrylic shell — CAD render"/>
+  <img src="assets/shell_render.png" width="80%" alt="Acrylic shell — CAD render"/>
+</p>
+
+<p align="center">
+  <img src="assets/assembled_robot.png" width="55%" alt="Assembled robot — top view"/>
 </p>
 
 ## Behaviour
@@ -90,11 +92,18 @@ The BS2 sits at the centre, talking to:
 The chassis is a **laser-cut acrylic** octagonal shell with **3D-printed** screw posts and water-tank brackets. The acrylic was chosen for transparency (so the internals are visible during demo) and for laser-cuttability — the entire shell comes from a single 24"×12" sheet.
 
 <p align="center">
-  <img src="assets/laser_cut_cad.png" width="35%" alt="Laser-cut CAD layout"/>
-  &nbsp;
-  <img src="assets/component_layout.png" width="35%" alt="Component layout (annotated)"/>
-  &nbsp;
-  <img src="assets/chassis_underside.png" width="25%" alt="Chassis underside — wheels and drivers"/>
+  <img src="assets/laser_cut_cad.png" width="80%" alt="Laser-cut CAD — single acrylic sheet"/>
+  <br/><em>Single 24"×12" acrylic sheet — every panel of the shell nests on one cut.</em>
+</p>
+
+<p align="center">
+  <img src="assets/component_layout.png" width="70%" alt="Annotated component layout (top view)"/>
+  <br/><em>Top-down component layout with hand-annotated callouts.</em>
+</p>
+
+<p align="center">
+  <img src="assets/chassis_underside.png" width="55%" alt="Chassis underside — drive motors and motor drivers"/>
+  <br/><em>Underside: four drive motors and the two motor-driver boards.</em>
 </p>
 
 - **Drive layout**: 4× DC motors with rubber wheels in a skid-steer arrangement. Two motor drivers, one per side, so left and right pairs always spin together.
@@ -145,7 +154,7 @@ Flash it with the **Parallax PBASIC Editor** (free from parallax.com) over the B
 ├── docs/
 │   └── Smart_Cleaner_Report.pdf   # Full design report
 └── assets/
-    ├── workflow.png
+    ├── workflow.svg / workflow.png
     ├── wiring_overview.png
     ├── navigation_pattern.png
     ├── component_layout.png
