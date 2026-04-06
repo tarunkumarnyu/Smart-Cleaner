@@ -1,9 +1,7 @@
 # Smart Cleaning Robot
 
-[![Course](https://img.shields.io/badge/Course-ME--GY%205103%20Mechatronics-4A90D9)](#)
 [![Microcontroller](https://img.shields.io/badge/MCU-Parallax%20BASIC%20Stamp%202-D85A30)](https://www.parallax.com/product/basic-stamp-2-module/)
 [![Language](https://img.shields.io/badge/Language-PBASIC%202.5-1D9E75)](#)
-[![Build](https://img.shields.io/badge/Build-Laser--cut%20Acrylic%20%2B%203D%20Print-666)](#)
 
 An autonomous floor-cleaning robot built on a Parallax BASIC Stamp 2. The bot drives in a skid-steer layout, scans for obstacles with an ultrasonic sensor, and switches between **wet mopping** and **dry sweeping** modes based on a capacitive moisture sensor mounted in the cleaning sponge. Built as a team project for **NYU Tandon ME-GY 5103 — Mechatronics**.
 
