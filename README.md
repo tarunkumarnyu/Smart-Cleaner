@@ -11,9 +11,8 @@ An autonomous floor-cleaning robot built on a Parallax BASIC Stamp 2. The bot dr
 
 ## Demo
 
-<!-- Drag-and-drop assets/smart_cleaner_demo.mp4 here in the GitHub web editor to embed -->
 
-https://github.com/tarunkumarnyu/Smart-Cleaner/raw/main/assets/smart_cleaner_demo.mp4
+https://github.com/user-attachments/assets/8a640637-6853-4763-8e3f-3418509b232d
 
 <p align="center">
   <img src="assets/cad_top.png" width="62%" alt="Top-down CAD render"/>
