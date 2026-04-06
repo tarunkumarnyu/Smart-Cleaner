@@ -172,28 +172,6 @@ The full PBASIC source is in [`firmware/smart_cleaner.bs2`](firmware/smart_clean
 
 Flash it with the **Parallax PBASIC Editor** (free from parallax.com) over the BS2's serial programming cable.
 
-## Repository Layout
-
-```
-.
-├── README.md
-├── firmware/
-│   └── smart_cleaner.bs2          # PBASIC source (commented)
-├── docs/
-│   └── Smart_Cleaner_Report.pdf   # Full design report
-└── assets/
-    ├── workflow.svg / workflow.png
-    ├── wiring_overview.png
-    ├── navigation_pattern.png
-    ├── cad_top.png
-    ├── cad_iso.png
-    ├── cad_underside.png
-    ├── shell_render.png
-    ├── assembled_robot.png
-    ├── lcd_wet.png  /  lcd_dry.png
-    └── smart_cleaner_demo.mp4
-```
-
 ## Limitations & Future Work
 
 - **Coverage** is open-loop (forward-until-bump, then turn right). A real Roomba-style spiral or wall-follow would cover the floor much more reliably.
