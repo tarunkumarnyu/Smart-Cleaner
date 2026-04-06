@@ -16,12 +16,12 @@ An autonomous floor-cleaning robot built on a Parallax BASIC Stamp 2. The bot dr
 https://github.com/tarunkumarnyu/Smart-Cleaner/raw/main/assets/smart_cleaner_demo.mp4
 
 <p align="center">
-  <img src="assets/shell_render.png" width="80%" alt="Acrylic shell — CAD render"/>
+  <img src="assets/cad_top.png" width="62%" alt="Top-down CAD render"/>
 </p>
 
-<p align="center">
-  <img src="assets/assembled_robot.png" width="55%" alt="Assembled robot — top view"/>
-</p>
+## Why
+
+Floor cleaning is the kind of housework that wrecks your back and your knees — long hours of bending, awkward postures, repetitive twisting. Rooms come in every shape and size, with different floors and different furniture, and yet the only "scalable" answer most people have is *more human effort*. The goal of this project was to build a small, fully autonomous cleaning robot that handles the boring case (sweep + mop a flat indoor floor) without anyone having to push it around.
 
 ## Behaviour
 
@@ -45,6 +45,14 @@ The right-turn-on-obstacle policy implements a deliberately simple **wall-follow
 
 <p align="center">
   <img src="assets/navigation_pattern.png" width="55%" alt="Coverage pattern from forward+right behaviour"/>
+</p>
+
+The two cleaning modes show up live on the LCD:
+
+<p align="center">
+  <img src="assets/lcd_wet.png" width="38%" alt="LCD: WATER CLEANING"/>
+  &nbsp;
+  <img src="assets/lcd_dry.png" width="38%" alt="LCD: DRY CLEANING / FILL WATER"/>
 </p>
 
 ## System Architecture
@@ -89,27 +97,48 @@ The BS2 sits at the centre, talking to:
 
 ## Mechanical Design
 
-The chassis is a **laser-cut acrylic** octagonal shell with **3D-printed** screw posts and water-tank brackets. The acrylic was chosen for transparency (so the internals are visible during demo) and for laser-cuttability — the entire shell comes from a single 24"×12" sheet.
+The chassis is an **octagonal acrylic shell** sized for minimum dead-space around every component. Acrylic was chosen for two reasons: it laser-cuts in one pass on a single 24"×12" sheet, and it is **transparent**, which makes the entire interior visible at a glance — useful for debugging during development and for showing off the build at demo time.
+
+The robot is split into three functional zones, all packed inside the octagonal footprint:
+
+- **Front bay** — ultrasonic sensor + front sweeper brush. The brush is driven by a continuous-rotation servo and acts as the dust agitator.
+- **Centre bay** — Board of Education with the BS2, both motor drivers, the buck converter, and the dual battery packs. The four drive motors and yellow gearmotor mounts dominate the centreline.
+- **Rear bay** — water tank, pump, and the standard servo that swings the mopping sponge through a 180° arc. The capacitive moisture sensor is embedded in the sponge so the controller knows exactly when to top up the water.
 
 <p align="center">
-  <img src="assets/laser_cut_cad.png" width="80%" alt="Laser-cut CAD — single acrylic sheet"/>
-  <br/><em>Single 24"×12" acrylic sheet — every panel of the shell nests on one cut.</em>
+  <img src="assets/cad_iso.png" width="62%" alt="Isometric CAD render — interior visible"/>
+  <br/><em>Isometric view — every component sits in its own bay inside the transparent shell.</em>
 </p>
 
 <p align="center">
-  <img src="assets/component_layout.png" width="70%" alt="Annotated component layout (top view)"/>
-  <br/><em>Top-down component layout with hand-annotated callouts.</em>
+  <img src="assets/cad_underside.png" width="62%" alt="Underside CAD render — sweeper and mopper"/>
+  <br/><em>Underside — front sweeper brush and rear mopping pad both visible.</em>
 </p>
 
-<p align="center">
-  <img src="assets/chassis_underside.png" width="55%" alt="Chassis underside — drive motors and motor drivers"/>
-  <br/><em>Underside: four drive motors and the two motor-driver boards.</em>
-</p>
+### Drive train
 
-- **Drive layout**: 4× DC motors with rubber wheels in a skid-steer arrangement. Two motor drivers, one per side, so left and right pairs always spin together.
-- **Cleaning end-effectors**: front sweeper (continuous servo + brush) and rear mopper (standard servo + sponge). The sponge has the moisture sensor embedded so the controller knows when to top up.
-- **Water system**: tank → DC pump → silicone tubing to the sponge. Pump is gated on the moisture reading so the sponge is rewetted only when it actually needs it.
-- **Power**: dual battery — one Li-ion pack for the BS2 + sensors, one for the drive motors and pump. Buck converter steps the drive battery down to the BS2's 5 V rail when needed.
+Four DC gearmotors are arranged as a **4-wheel skid-steer**: each side runs from its own L298-style motor driver, so the left and right pairs are commanded as a single unit. Driving forward simply means both sides forward; turning is "one side forward, one side reverse" for a zero-radius pivot, which is the only thing the controller needs to escape obstacles given a forward-facing ultrasonic sensor.
+
+### Cleaning end-effectors
+
+| | Cleaner-1 (front) | Cleaner-2 (rear) |
+|---|---|---|
+| **Servo type** | Continuous rotation | Standard 0–180° |
+| **Brush** | Bristle sweeper | Sponge mop |
+| **Job** | Lift dust ahead of the robot | Wet-mop with a 0°↔180° sweep |
+| **Always on?** | Yes — runs while the robot moves | Only in WET mode (when the sponge has water) |
+
+### Water system
+
+The tank sits in the rear bay above the mop. A small DC pump pulls water out through silicone tubing and feeds the sponge directly. The capacitive moisture sensor inside the sponge is read every loop iteration via `RCTIME`; when the reading crosses the dry threshold the firmware turns the pump off, drops the rear servo, and posts a "FILL WATER" message to the LCD so the user knows what to do next. There is no separate "tank empty" sensor — the sponge moisture *is* the tank-empty signal, which collapses two parts into one.
+
+### Power tree
+
+Two separate battery packs:
+- **Logic pack** — feeds the BS2, the LCD, and the sensors. Isolated from the drive train so motor brush noise doesn't reset the microcontroller.
+- **Drive pack** — feeds both motor drivers, the pump, and the two servos through an LM2596 buck converter that drops it to the regulated rail the actuators want.
+
+External **toggle switches** sit on the rear face of the shell as the master ON/OFF for each rail — no software state, no surprises.
 
 ## Bill of Materials
 
@@ -157,12 +186,12 @@ Flash it with the **Parallax PBASIC Editor** (free from parallax.com) over the B
     ├── workflow.svg / workflow.png
     ├── wiring_overview.png
     ├── navigation_pattern.png
-    ├── component_layout.png
-    ├── laser_cut_cad.png
+    ├── cad_top.png
+    ├── cad_iso.png
+    ├── cad_underside.png
     ├── shell_render.png
-    ├── chassis_underside.png
     ├── assembled_robot.png
-    ├── market_reference.png
+    ├── lcd_wet.png  /  lcd_dry.png
     └── smart_cleaner_demo.mp4
 ```
 
@@ -172,6 +201,7 @@ Flash it with the **Parallax PBASIC Editor** (free from parallax.com) over the B
 - **Battery life** is short — the BS2 + dual servos + pump + four DC motors draw enough that runtime is limited.
 - **Cleaning effectiveness** on entrenched dirt is modest. Adding a vacuum module or replacing the brushes would help.
 - **Cost** is dominated by the BS2; porting to an Arduino Nano or ESP32 would cut the BoM by an order of magnitude.
+- **Sensor suite** — a single front-facing ultrasonic gives the robot tunnel vision. Side rangers, a cliff sensor, and a floor-type sensor (the slide deck mentions adapting cleaning mode to carpet vs. tile) are the obvious next steps.
 
 ## Course
 
